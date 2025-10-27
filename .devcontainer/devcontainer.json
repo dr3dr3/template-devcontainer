@@ -1,0 +1,34 @@
+{
+    "name": "DR3DR3-DEVCONTAINER",
+
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+
+    "workspaceFolder": "/workspace",
+
+    "postCreateCommand": "gum style --foreground 003 --border-foreground 003 --border rounded --align center --width 50 --margin '1 2' --padding '2 4' 'André Dreyer' 'Devcontainer'",
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.live-server",
+                "esbenp.prettier-vscode",
+                "github.vscode-pull-request-github",
+                "ms-azuretools.vscode-docker",
+                "github.copilot",
+                "Anthropic.claude-code"
+            ],
+            "settings": {
+                "editor.fontFamily": "FiraCode Nerd Font, monospace",
+                "editor.fontSize": 12,
+                "terminal.integrated.defaultProfile.linux": "fish", 
+                "terminal.integrated.profiles.linux": {
+                    "fish": {
+                        "path": "/usr/bin/fish"
+                    }
+                }
+            }
+        }
+    }
+}
