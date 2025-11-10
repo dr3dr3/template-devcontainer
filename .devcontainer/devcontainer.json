@@ -16,10 +16,9 @@
                 "esbenp.prettier-vscode",
                 "github.vscode-pull-request-github",
                 "ms-azuretools.vscode-docker",
+                "ms-azuretools.vscode-containers",
                 "github.copilot",
-                "Anthropic.claude-code",
-                "TheNuProjectContributors.vscode-nushell-lang",
-                "tamasfe.even-better-toml"
+                "Anthropic.claude-code"
             ],
             "settings": {
                 "editor.fontFamily": "FiraCode Nerd Font, monospace",
