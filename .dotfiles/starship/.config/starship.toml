@@ -1,0 +1,87 @@
+format = """
+$shell\
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$container\
+$helm\
+$kubernetes\
+$cmd_duration\
+$line_break\
+$character"""
+
+[directory]
+style = "blue"
+truncation_length = 8
+truncate_to_repo = false
+truncation_symbol = "…/"
+
+[username]
+disabled = false
+format = "[$user]($style) "
+style_root = 'bold red'
+style_user = 'bold yellow'
+aliases = { "root" = "💀", "andré" = "😎" }
+
+[character]
+disabled = false
+format = "$symbol "
+success_symbol = '[➜](bold green) '
+error_symbol = '[➜](bold red) '
+
+[shell]
+disabled = false
+format = '[$indicator]($style) '
+style = 'cyan bold'
+bash_indicator = '🤜'
+nu_indicator = '🐢'
+fish_indicator = '🐠'
+powershell_indicator = ' '
+unknown_indicator = '⚙️'
+
+[git_branch]
+disabled = false
+format = "[$branch]($style) "
+style = "bright-black"
+
+[git_status]
+disabled = false
+format = "[[($conflicted$untracked$modified$staged$renamed$deleted)](218) ($ahead_behind$stashed)]($style) "
+style = "cyan"
+conflicted = '🏳'
+ahead = '⇡${count}'
+behind = '⇣${count}'
+diverged = '⇕⇡${ahead_count}⇣${behind_count}'
+up_to_date = '✓'
+untracked = '🤷'
+stashed = '📦'
+modified = '📝'
+staged = '[++\($count\)](green)'
+renamed = '👅'
+deleted = '🗑'
+
+[git_state]
+disabled = false
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+style = "bright-black"
+
+[cmd_duration]
+disabled = false
+format = "[$duration]($style) "
+style = "yellow"
+
+[container]
+disabled = false
+format = '[$symbol]($style) '
+symbol = '󰆧'
+style = 'white dimmed'
+
+[helm]
+format = 'via [⎈ $version](bold white) '
+
+[kubernetes]
+disabled = false
+format = 'on [ $cluster \($namespace\)](dimmed green) '
