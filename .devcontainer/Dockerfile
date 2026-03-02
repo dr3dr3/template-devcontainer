@@ -72,12 +72,18 @@ RUN mkdir -p -m 755 /etc/apt/keyrings \
     && apt-get install -y --no-install-recommends gh \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Claude Code CLI via npm for version pinning and integrity verification.
+# The npm registry validates package checksums, eliminating the supply-chain risk
+# of piping a remote shell script. Pin to a specific release for reproducible builds.
+RUN npm install -g @anthropic-ai/claude-code@2.1.63
+
 # Verify installations
 RUN echo "Verifying installations..." \
     && node --version \
     && npm --version \
     && aws --version \
-    && gh --version
+    && gh --version \
+    && claude --version
     
 # Create a non-root user for development (following devcontainer best practices)
 ARG USERNAME=dev
@@ -97,13 +103,6 @@ WORKDIR /home/$USERNAME
 # Configure git user
 RUN git config --global user.name "André Dreyer" && \
     git config --global user.email "github@andredreyer.com"
-
-# Install Claude Code CLI using native installer (recommended method)
-# Note: npm installation is deprecated. Native installer auto-updates in background.
-RUN curl -fsSL https://claude.ai/install.sh | bash
-
-# Add ~/.local/bin to PATH so the `claude` binary is accessible
-ENV PATH="/home/$USERNAME/.local/bin:$PATH"
 
 # Default command
 CMD ["/bin/bash"]
