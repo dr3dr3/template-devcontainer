@@ -27,8 +27,13 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     # Required for AWS CLI v2
     groff \
     && rm -rf /var/lib/apt/lists/* \
-    # Install Node.js 22 via NodeSource
-    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    # Install Node.js 22 via NodeSource using GPG keyring (avoids piping remote script into bash)
+    && mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key -o /tmp/nodesource.key \
+    && gpg --dearmor < /tmp/nodesource.key > /etc/apt/keyrings/nodesource.gpg \
+    && rm -f /tmp/nodesource.key \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list > /dev/null \
+    && apt-get update \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
