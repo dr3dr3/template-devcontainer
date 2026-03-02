@@ -36,10 +36,24 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 RUN npm install -g npm@latest
 
 # yq — YAML/JSON/TOML processor (useful for AI-assisted workflows and scripting)
-# Not in Debian repos; install from GitHub releases (mikefarah/yq)
-RUN curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_$(dpkg --print-architecture)" \
-    -o /usr/local/bin/yq \
-    && chmod +x /usr/local/bin/yq
+# Pinned to a specific release with SHA-256 checksum verification to prevent
+# supply-chain attacks. The checksums file ships with every yq release and lists
+# 31 hash algorithms per binary; the column order is defined in checksums_hashes_order
+# (https://github.com/mikefarah/yq/releases/download/v4.52.4/checksums_hashes_order).
+# SHA-256 is entry #18 in that list, so it is field $19 in the checksums file
+# (field $1 = filename, fields $2–$18 = the 17 preceding hash types).
+RUN YQ_VERSION="v4.52.4" \
+    && ARCH=$(dpkg --print-architecture) \
+    && YQ_BINARY="yq_linux_${ARCH}" \
+    && curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY}" \
+        -o /tmp/yq \
+    && curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/checksums" \
+        -o /tmp/yq_checksums \
+    && EXPECTED_SHA256=$(awk -v f="${YQ_BINARY}" '$1==f{print $19}' /tmp/yq_checksums) \
+    && { [ -n "${EXPECTED_SHA256}" ] || { echo "ERROR: SHA-256 not found for ${YQ_BINARY} in checksums file" >&2; exit 1; }; } \
+    && echo "${EXPECTED_SHA256}  /tmp/yq" | sha256sum -c - \
+    && install -o root -g root -m 0755 /tmp/yq /usr/local/bin/yq \
+    && rm -f /tmp/yq /tmp/yq_checksums
 
 # Install AWS CLI v2
 # AWS CLI v2 is distributed as a pre-built binary package
