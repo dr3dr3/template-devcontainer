@@ -3,8 +3,8 @@ FROM ubuntu:24.04
 
 LABEL maintainer="André Dreyer"
 
-# Avoid prompts from apt
-ENV DEBIAN_FRONTEND=noninteractive
+# Avoid prompts from apt during build only (ARG scopes it to build time, not the running container)
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Install base dependencies and Node.js 22 via NodeSource in a single layer
 # apt-get upgrade ensures any base image CVEs are patched at build time.
@@ -14,7 +14,6 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     build-essential \
     # Networking and download tools
     curl \
-    wget \
     ca-certificates \
     gnupg \
     # Version control
@@ -79,6 +78,7 @@ RUN mkdir -p -m 755 /etc/apt/keyrings \
 RUN echo "Verifying installations..." \
     && node --version \
     && npm --version \
+    && yq --version \
     && aws --version \
     && gh --version
     
@@ -87,8 +87,7 @@ ARG USERNAME=dev
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-RUN userdel -r node 2>/dev/null || true \
-    && groupadd --gid $USER_GID $USERNAME \
+RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -s /bin/bash \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
