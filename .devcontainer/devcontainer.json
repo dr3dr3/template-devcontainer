@@ -1,5 +1,5 @@
 {
-    "name": "DR3DR3-ROE-CONTEXT",
+    "name": "DR3DR3-DEVCONTAINER-TEMPLATE",
 
     "build": {
         "dockerfile": "Dockerfile"
