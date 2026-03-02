@@ -26,9 +26,17 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     sudo \
     # Required for AWS CLI v2
     groff \
-    && rm -rf /var/lib/apt/lists/* \
-    # Install Node.js 22 via NodeSource
-    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 22 via the official NodeSource apt repository.
+# Using the keyring/sources.list approach avoids piping a remote script directly into bash,
+# which removes the supply-chain risk of the setup_22.x installer method.
+RUN mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+       | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
+       > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
@@ -36,8 +44,11 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 RUN npm install -g npm@latest
 
 # yq — YAML/JSON/TOML processor (useful for AI-assisted workflows and scripting)
-# Not in Debian repos; install from GitHub releases (mikefarah/yq)
-RUN curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_$(dpkg --print-architecture)" \
+# Not in Debian repos; install from GitHub releases (mikefarah/yq).
+# Pinned to a specific version to avoid pulling an unverified 'latest' binary.
+# To update: bump YQ_VERSION and verify checksums at https://github.com/mikefarah/yq/releases
+ARG YQ_VERSION="v4.44.3"
+RUN curl -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_$(dpkg --print-architecture)" \
     -o /usr/local/bin/yq \
     && chmod +x /usr/local/bin/yq
 
@@ -47,18 +58,10 @@ RUN ARCH=$(dpkg --print-architecture) \
     && if [ "$ARCH" = "amd64" ]; then AWS_URL="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"; \
        elif [ "$ARCH" = "arm64" ]; then AWS_URL="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"; \
        else echo "Unsupported arch: $ARCH" && exit 1; fi \
-    && curl "$AWS_URL" -o "awscliv2.zip" \
+    && curl -fsSL "$AWS_URL" -o "awscliv2.zip" \
     && unzip awscliv2.zip \
     && ./aws/install \
     && rm -rf awscliv2.zip aws
-
-# Install GitHub CLI
-RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-    && apt-get update \
-    && apt-get install -y gh \
-    && rm -rf /var/lib/apt/lists/*
 
 # GitHub CLI (gh) — PR/issue management and AI-assisted workflows
 RUN mkdir -p -m 755 /etc/apt/keyrings \
@@ -98,12 +101,15 @@ WORKDIR /home/$USERNAME
 RUN git config --global user.name "André Dreyer" && \
     git config --global user.email "github@andredreyer.com"
 
-# Install Claude Code CLI using native installer (recommended method)
-# Note: npm installation is deprecated. Native installer auto-updates in background.
+# Install Claude Code CLI using the official Anthropic native installer.
+# This is the vendor-recommended install method: https://docs.anthropic.com/en/docs/claude-code/setup
+# Note: npm installation is deprecated by Anthropic. Native installer auto-updates in background.
+# Risk acknowledged: supply-chain trust is delegated to Anthropic's claude.ai domain.
+# No checksummed or versioned alternative is currently provided by Anthropic.
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # Add ~/.local/bin to PATH so the `claude` binary is accessible
-ENV PATH="/home/dev/.local/bin:$PATH"
+ENV PATH="/home/${USERNAME}/.local/bin:$PATH"
 
 # Default command
 CMD ["/bin/bash"]
