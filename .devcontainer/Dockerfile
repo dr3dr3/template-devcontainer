@@ -9,7 +9,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install base dependencies and Node.js 22 via NodeSource in a single layer
 # apt-get upgrade ensures any base image CVEs are patched at build time.
 # npm package CVEs (tar, minimatch, glob) are addressed by the npm install -g npm@latest step below.
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     # Essential build tools
     build-essential \
     # Networking and download tools
@@ -21,7 +21,6 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     # Useful utilities
     unzip \
     less \
-    man-db \
     sudo \
     # Required for AWS CLI v2
     groff \
@@ -97,6 +96,8 @@ USER $USERNAME
 WORKDIR /home/$USERNAME
 
 # Configure git user
+# Note: git config is also set via postCreateCommand in devcontainer.json at container start.
+# The step here ensures git works correctly during the image build (e.g. for any RUN steps that use git).
 RUN git config --global user.name "André Dreyer" && \
     git config --global user.email "github@andredreyer.com"
 
