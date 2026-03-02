@@ -35,6 +35,12 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 # Update npm to the latest version
 RUN npm install -g npm@latest
 
+# yq — YAML/JSON/TOML processor (useful for AI-assisted workflows and scripting)
+# Not in Debian repos; install from GitHub releases (mikefarah/yq)
+RUN curl -fsSL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_$(dpkg --print-architecture)" \
+    -o /usr/local/bin/yq \
+    && chmod +x /usr/local/bin/yq
+
 # Install AWS CLI v2
 # AWS CLI v2 is distributed as a pre-built binary package
 RUN ARCH=$(dpkg --print-architecture) \
@@ -54,6 +60,17 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
+# GitHub CLI (gh) — PR/issue management and AI-assisted workflows
+RUN mkdir -p -m 755 /etc/apt/keyrings \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+    && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && mkdir -p -m 755 /etc/apt/sources.list.d \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+    > /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gh \
+    && rm -rf /var/lib/apt/lists/*
 
 # Verify installations
 RUN echo "Verifying installations..." \
