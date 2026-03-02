@@ -103,7 +103,7 @@ RUN git config --global user.name "André Dreyer" && \
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # Add ~/.local/bin to PATH so the `claude` binary is accessible
-ENV PATH="/home/dev/.local/bin:$PATH"
+ENV PATH="/home/$USERNAME/.local/bin:$PATH"
 
 # Default command
 CMD ["/bin/bash"]
