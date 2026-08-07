@@ -1,6 +1,6 @@
 # Use Ubuntu Noble (24.04 LTS) for a lower CVE surface area than Debian Bookworm.
 # Supported until 2029-05-31.
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 LABEL org.opencontainers.image.title="dr3dr3 devcontainer template" \
       org.opencontainers.image.source="https://github.com/dr3dr3/template-devcontainer" \
