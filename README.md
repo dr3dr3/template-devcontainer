@@ -64,8 +64,11 @@ A short checklist for turning this template into your project:
    the template repo.
 2. **Set your AWS region.** `remoteEnv.AWS_REGION` defaults to `ap-southeast-2`. There is a
    commented `AWS_PROFILE` next to it if you use named profiles.
-3. **Trim the extensions list.** Drop what your project does not need — the AWS Toolkit and Live
-   Preview in particular are not universally useful.
+3. **Trim the extensions list.** The pre-installed set in
+   [devcontainer.json](.devcontainer/devcontainer.json) is deliberately general; drop anything your
+   project does not need. The situational extras (AWS Toolkit, Live Preview) are already split out
+   into [.vscode/extensions.json](.vscode/extensions.json) as prompts you can simply decline —
+   see [VS Code Extensions](#vs-code-extensions).
 4. **Update the `LICENSE`** copyright holder, or replace the licence entirely.
 5. **Adjust tool versions** if a project needs something specific — either edit the `ARG`s in the
    Dockerfile, or override per-project via `build.args` in `devcontainer.json`.
@@ -177,7 +180,14 @@ Each build asserts: every tool is present and on its pinned version, the session
 
 ## VS Code Extensions
 
-The following extensions are pre-installed in this devcontainer.
+Extensions come in two tiers:
+
+* **Pre-installed** — listed in [devcontainer.json](.devcontainer/devcontainer.json) and installed
+  automatically for anyone who opens the container. Kept to things that earn their place in any
+  project built from this template.
+* **Recommended** — listed in [.vscode/extensions.json](.vscode/extensions.json). VS Code offers
+  these as a dismissible prompt rather than installing them. This is where the situational ones
+  live, so a project that does not need them simply declines.
 
 ### GitHub Pull Requests (`github.vscode-pull-request-github`)
 
@@ -187,6 +197,15 @@ Manage GitHub pull requests and issues directly in VS Code.
 * Create, review, and merge pull requests without leaving the editor
 * Checkout a PR branch directly from the PR list
 * Leave inline review comments on diffs
+
+### GitHub Actions (`github.vscode-github-actions`)
+
+Authoring and monitoring for the workflows in [.github/workflows](.github/workflows).
+
+* Schema validation and completion while editing workflow YAML
+* View recent runs, drill into job logs, and re-run failed jobs from the Activity Bar
+* Particularly relevant here — the [weekly cross-architecture build](#ci) is what keeps this
+  template from rotting
 
 ### GitHub Copilot (`github.copilot`, `github.copilot-chat`)
 
@@ -204,15 +223,6 @@ The editor companion for the `claude` CLI that ships in this image.
 * Run `claude` in the integrated terminal, or open the panel from the Activity Bar
 * Selected code and open files are shared as context automatically
 * Diffs are proposed in the editor for review before they are applied
-
-### AWS Toolkit (`amazonwebservices.aws-toolkit-vscode`)
-
-Browse and interact with AWS services from within VS Code.
-
-* Sign in via the **AWS** panel in the Activity Bar
-* Browse S3 buckets, Lambda functions, CloudFormation stacks, and more
-* Open the **AWS Explorer** to navigate resources in `ap-southeast-2` (pre-configured)
-* Run and debug Lambda functions locally
 
 ### Prettier (`esbenp.prettier-vscode`)
 
@@ -242,22 +252,67 @@ Schema-aware editing for YAML files.
 * Validation and completion for GitHub Actions workflows out of the box
 * Set as the default formatter for `.yml` / `.yaml`
 
+### markdownlint (`davidanson.vscode-markdownlint`)
+
+Style and consistency linting for Markdown.
+
+* Catches broken link syntax, inconsistent heading levels, and malformed tables
+* Fix auto-fixable issues via `Ctrl+Shift+P` → **markdownlint: Fix all supported violations**
+* Add a `.markdownlint.json` to the workspace root to adjust or disable rules
+
+### ShellCheck (`timonwong.shellcheck`)
+
+Static analysis for shell scripts — the classic source of silent devcontainer breakage.
+
+* Lints [post-create.sh](.devcontainer/post-create.sh) and
+  [post-start.sh](.devcontainer/post-start.sh) as you edit
+* Catches unquoted expansions, `cd` without a guard, and misused test operators
+* Bundles its own `shellcheck` binary, so nothing extra is installed in the image
+
 ### GitLens (`eamodio.gitlens`)
 
-Git history and blame annotations inline in the editor.
+Deep Git history navigation.
 
-* Inline blame on the current line, showing who last changed it and when
+* **Commit Graph** for visualising branch topology
 * **File History** and **Line History** views for tracing a change back
 * Rich side-by-side comparison between branches, tags, and commits
 
-### Docker (`ms-azuretools.vscode-docker`)
+Note that *inline blame is not GitLens's job here.* VS Code has shipped blame natively since
+1.96/1.97, so `git.blame.editorDecoration.enabled` is turned on in
+[devcontainer.json](.devcontainer/devcontainer.json) and GitLens is kept for the views above.
+Its first-run welcome and release-notes prompts are also muted, so a fresh clone of this template
+opens without an upsell.
 
-Build, manage, and deploy containerised applications.
+### Container Tools + Docker DX (`ms-azuretools.vscode-containers`, `docker.docker`)
 
-* Open the **Docker** panel in the Activity Bar to view images, containers, and registries
-* Right-click a `Dockerfile` to build an image directly
+Container management and Dockerfile authoring, respectively.
+
+* Open the **Containers** panel in the Activity Bar to view images, containers, and registries
 * View running container logs and open a shell inside a container from the panel
+* Docker DX adds Dockerfile linting via BuildKit/Buildx best-practice checks — useful in this
+  repo in particular, where the [Dockerfile](.devcontainer/Dockerfile) *is* the deliverable
 * Backed by the Docker CLI and host socket described in [Docker access](#docker-access)
+
+> Microsoft [split the old `ms-azuretools.vscode-docker` extension](https://techcommunity.microsoft.com/blog/appsonazureblog/major-updates-to-vs-code-docker-introducing-container-tools/4400609):
+> its code moved to Container Tools, and the original ID is now an extension pack wrapping
+> Container Tools plus Docker's own Docker DX. Both are named explicitly here rather than relying
+> on that indirection.
+
+---
+
+## Recommended extensions
+
+Offered on first open via [.vscode/extensions.json](.vscode/extensions.json) rather than
+installed automatically, because neither is useful in every project.
+
+### AWS Toolkit (`amazonwebservices.aws-toolkit-vscode`)
+
+Browse and interact with AWS services from within VS Code.
+
+* Sign in via the **AWS** panel in the Activity Bar
+* Browse S3 buckets, Lambda functions, CloudFormation stacks, and more
+* Open the **AWS Explorer** to navigate resources in `ap-southeast-2` (pre-configured)
+* Run and debug Lambda functions locally
 
 ### Live Preview (`ms-vscode.live-server`)
 

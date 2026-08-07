@@ -25,19 +25,32 @@
 
     "customizations": {
         "vscode": {
+            // Force-installed for everyone who opens this container. Keep this
+            // list to things that earn their place in *any* project built from
+            // the template — situational extensions belong in
+            // .vscode/extensions.json, where they are offered rather than imposed.
             "extensions": [
+                // GitHub + AI
                 "github.vscode-pull-request-github",
+                "github.vscode-github-actions",
                 "github.copilot",
                 "github.copilot-chat",
                 "anthropic.claude-code",
-                "amazonwebservices.aws-toolkit-vscode",
+                // Formatting and linting
                 "esbenp.prettier-vscode",
                 "dbaeumer.vscode-eslint",
                 "editorconfig.editorconfig",
                 "redhat.vscode-yaml",
+                "davidanson.vscode-markdownlint",
+                "timonwong.shellcheck",
+                // Git
                 "eamodio.gitlens",
-                "ms-azuretools.vscode-docker",
-                "ms-vscode.live-server"
+                // Containers. ms-azuretools.vscode-docker is superseded: the code
+                // moved to Container Tools (vscode-containers) and the old ID is
+                // now just a pack wrapping it plus Docker's own Docker DX.
+                // Both are named explicitly so the indirection cannot rot.
+                "ms-azuretools.vscode-containers",
+                "docker.docker"
             ],
             "settings": {
                 "editor.fontFamily": "FiraCode Nerd Font, monospace",
@@ -48,11 +61,18 @@
                 "files.trimTrailingWhitespace": true,
                 "files.insertFinalNewline": true,
                 "[dockerfile]": {
-                    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+                    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
                 },
                 "[yaml]": {
                     "editor.defaultFormatter": "redhat.vscode-yaml"
                 },
+                // Inline blame is built into VS Code as of 1.96/1.97, so it is
+                // used here rather than GitLens's equivalent. GitLens stays for
+                // Commit Graph / Line History, with its first-run upsells muted
+                // so a fresh clone of this template opens quietly.
+                "git.blame.editorDecoration.enabled": true,
+                "gitlens.showWelcomeOnInstall": false,
+                "gitlens.showWhatsNewAfterUpgrades": false,
                 "terminal.integrated.defaultProfile.linux": "bash",
                 "terminal.integrated.profiles.linux": {
                     "bash": {

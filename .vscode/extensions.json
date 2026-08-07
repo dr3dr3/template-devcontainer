@@ -1,0 +1,16 @@
+{
+    // Situational extensions — offered, not imposed.
+    //
+    // The universally-useful list lives in .devcontainer/devcontainer.json and is
+    // force-installed for anyone who opens the container. These two are not
+    // useful in every project built from this template, so they are surfaced as a
+    // dismissible prompt instead. Delete the ones your project does not need.
+    "recommendations": [
+        // AWS Explorer, Lambda debugging, S3/CloudFormation browsing.
+        // Drop this if the project does not touch AWS.
+        "amazonwebservices.aws-toolkit-vscode",
+        // Live-reloading static file server ("Go Live" in the status bar).
+        // Drop this if the project has no static frontend.
+        "ms-vscode.live-server"
+    ]
+}
