@@ -59,8 +59,14 @@ jobs:
             echo "::endgroup::"
 
             echo "::group::Running as non-root"
+            echo "user=$(id -un) uid=$(id -u) gid=$(id -g) groups=$(id -Gn)"
             test "$(id -un)" = "dev"
-            test "$(id -u)" = "1000"
+            # Deliberately NOT asserting uid == 1000. The Dev Containers CLI
+            # applies updateRemoteUserUID, which remaps the container user onto
+            # the *host* user's UID — 1001 on GitHub runners. That is correct
+            # behaviour (it keeps bind-mounted file ownership sane), so the
+            # property worth asserting is "not root", not a specific number.
+            test "$(id -u)" != "0"
             echo "::endgroup::"
 
             echo "::group::No git identity baked into the image"
