@@ -1,0 +1,79 @@
+name: devcontainer
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Weekly rebuild: the base image, apt packages and the Claude Code installer
+  # all move underneath the pinned tools, so catch breakage before a human does.
+  schedule:
+    - cron: "0 19 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build devcontainer and verify tooling
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          runCmd: |
+            set -euo pipefail
+
+            echo "::group::Tool versions"
+            git --version
+            node --version
+            npm --version
+            yq --version
+            aws --version
+            gh --version
+            docker --version
+            docker compose version
+            claude --version
+            echo "::endgroup::"
+
+            echo "::group::Pin assertions"
+            node --version | grep -q '^v24\.'
+            yq --version | grep -q '4\.53\.3'
+            aws --version | grep -q 'aws-cli/2\.36\.18'
+            echo "::endgroup::"
+
+            echo "::group::Running as non-root"
+            test "$(id -un)" = "dev"
+            test "$(id -u)" = "1000"
+            echo "::endgroup::"
+
+            echo "::group::No git identity baked into the image"
+            # The template must not ship anybody's name/email; identity comes
+            # from the host ~/.gitconfig at runtime.
+            if git config --global user.email >/dev/null 2>&1; then
+              echo "FAIL: image has a global git user.email: $(git config --global user.email)"
+              exit 1
+            fi
+            echo "ok"
+            echo "::endgroup::"
+
+            echo "::group::Docker socket reachable (post-start hook)"
+            docker ps > /dev/null
+            echo "ok"
+            echo "::endgroup::"

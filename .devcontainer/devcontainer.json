@@ -1,12 +1,27 @@
 {
+    // Rename this to match your project after cloning the template.
     "name": "DR3DR3-DEVCONTAINER-TEMPLATE",
 
     "build": {
         "dockerfile": "Dockerfile"
+        // Tool versions are pinned as ARGs at the top of the Dockerfile.
+        // Override them here if a single project needs something different, e.g.
+        // "args": { "NODE_MAJOR": "22" }
     },
 
     "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
     "workspaceFolder": "/workspace",
+
+    // Bind the host Docker socket (docker-outside-of-docker: the CLI in this
+    // container drives the host daemon) and persist state that is expensive to
+    // recreate. The named volumes are keyed by ${devcontainerId}, so each repo
+    // built from this template gets its own credentials and history.
+    "mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+        "source=devcontainer-${devcontainerId}-claude,target=/home/dev/.claude,type=volume",
+        "source=devcontainer-${devcontainerId}-aws,target=/home/dev/.aws,type=volume",
+        "source=devcontainer-${devcontainerId}-history,target=/commandhistory,type=volume"
+    ],
 
     "customizations": {
         "vscode": {
@@ -14,15 +29,30 @@
                 "github.vscode-pull-request-github",
                 "github.copilot",
                 "github.copilot-chat",
+                "anthropic.claude-code",
                 "amazonwebservices.aws-toolkit-vscode",
                 "esbenp.prettier-vscode",
                 "dbaeumer.vscode-eslint",
+                "editorconfig.editorconfig",
+                "redhat.vscode-yaml",
+                "eamodio.gitlens",
                 "ms-azuretools.vscode-docker",
                 "ms-vscode.live-server"
             ],
             "settings": {
                 "editor.fontFamily": "FiraCode Nerd Font, monospace",
                 "editor.fontSize": 14,
+                "editor.formatOnSave": true,
+                "editor.defaultFormatter": "esbenp.prettier-vscode",
+                "files.eol": "\n",
+                "files.trimTrailingWhitespace": true,
+                "files.insertFinalNewline": true,
+                "[dockerfile]": {
+                    "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+                },
+                "[yaml]": {
+                    "editor.defaultFormatter": "redhat.vscode-yaml"
+                },
                 "terminal.integrated.defaultProfile.linux": "bash",
                 "terminal.integrated.profiles.linux": {
                     "bash": {
@@ -36,16 +66,25 @@
     // Set environment variables
     "remoteEnv": {
         "AWS_REGION": "ap-southeast-2"
+        // Uncomment to default the CLI and AWS Toolkit to a named profile:
+        // , "AWS_PROFILE": "default"
     },
-    
+
     // Connect as the non-root user.
     // Hardcoded to match ARG USERNAME=dev in the Dockerfile.
-    // If you change the USERNAME build arg, update this value to match.
+    // If you change the USERNAME build arg, update this value and the /home/dev
+    // mount targets above to match.
     "remoteUser": "dev",
 
-    // Configure git identity at container start (runs as the remoteUser).
-    // This ensures the correct identity is used for commits made inside the container.
-    "postCreateCommand": "git config --global user.name 'André Dreyer' && git config --global user.email 'github@andredreyer.com'"
-    
-}
+    // Git identity is NOT configured here. The Dev Containers extension copies
+    // your host ~/.gitconfig into the container on startup, so commits use
+    // whoever is running the container. To override for this repo only, run:
+    //   git config user.email 'you@example.com'
+    //
+    // Hand ownership of the named volumes to the dev user and wire up persistent
+    // shell history (once, at creation).
+    "postCreateCommand": "bash .devcontainer/post-create.sh",
 
+    // Align the container's docker group with the mounted host socket (every start).
+    "postStartCommand": "bash .devcontainer/post-start.sh"
+}

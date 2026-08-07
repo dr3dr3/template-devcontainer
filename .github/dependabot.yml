@@ -1,0 +1,20 @@
+version: 2
+
+# Note: this only covers the GitHub Actions used by CI and the `FROM ubuntu:24.04`
+# base image. The tool versions pinned as ARGs in .devcontainer/Dockerfile
+# (NODE_MAJOR, YQ_VERSION + hashes, AWSCLI_VERSION) are not visible to Dependabot
+# and must be bumped by hand — see the "Updating pinned versions" section of the README.
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+
+  - package-ecosystem: docker
+    directory: "/.devcontainer"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build"
